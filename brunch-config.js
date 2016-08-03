@@ -42,7 +42,12 @@ exports.config = {
     // Dependencies and current project directories to watch
     watched: [
       "web/static",
-      "test/static"
+      "test/static",
+      "web/elm/Game.elm",
+      "web/elm/Routes.elm",
+      "web/elm/Main.elm",
+      "web/elm/Models.elm",
+      "web/elm/Lobby.elm"
     ],
 
     // Where to compile files to
@@ -51,6 +56,11 @@ exports.config = {
 
   // Configure your plugins
   plugins: {
+    elmBrunch: {
+      elmFolder: "web/elm",
+      mainModules: ["Main.elm"],
+      outputFolder: "../static/vendor"
+    },
     babel: {
       // Do not use ES6 compiler in vendor code
       ignore: [/web\/static\/vendor/]

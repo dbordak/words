@@ -1,7 +1,7 @@
 defmodule Words.Endpoint do
   use Phoenix.Endpoint, otp_app: :words
 
-  socket "/socket", Words.UserSocket
+  socket "/socket", Words.PlayerSocket
 
   # Serve at "/" the static files from "priv/static" directory.
   #

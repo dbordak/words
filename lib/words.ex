@@ -1,6 +1,15 @@
 defmodule Words do
   use Application
 
+  @id_length Application.get_env(:words, :id_length)
+
+  def generate_player_id do
+    @id_length
+    |> :crypto.strong_rand_bytes
+    |> Base.url_encode64()
+    |> binary_part(0, @id_length)
+  end
+
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -14,6 +23,7 @@ defmodule Words do
       supervisor(Words.Endpoint, []),
       # Start your own worker by calling: Words.Worker.start_link(arg1, arg2, arg3)
       # worker(Words.Worker, [arg1, arg2, arg3]),
+      supervisor(Words.Game.Supervisor, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

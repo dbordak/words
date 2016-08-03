@@ -1,12 +1,17 @@
-defmodule Words.UserSocket do
+defmodule Words.PlayerSocket do
   use Phoenix.Socket
+
+  alias Words.Player
 
   ## Channels
   # channel "room:*", Words.RoomChannel
 
+  channel "lobby", Words.LobbyChannel
+  channel "game:*", Words.GameChannel
+
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
-  # transport :longpoll, Phoenix.Transports.LongPoll
+  transport :longpoll, Phoenix.Transports.LongPoll
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -19,8 +24,13 @@ defmodule Words.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
+  # def connect(%{"id" => player_id}, socket) do
+  #   {:ok, assign(socket, :player_id, player_id)}
+  # end
+
+  # def connect(_,_socket), do: :error
   def connect(_params, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, :player_id, Words.generate_player_id)}
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -33,5 +43,5 @@ defmodule Words.UserSocket do
   #     Words.Endpoint.broadcast("users_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
-  def id(_socket), do: nil
+  def id(socket), do: "players_socket:#{socket.assigns.player_id}"
 end
