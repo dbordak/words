@@ -11,13 +11,10 @@ import Models exposing (..)
 view : Model -> Html Msg
 view model =
   div []
-    [div
-        []
-        [ h3 [] [ text model.playerStatus ]]
-    , form [ onSubmit TouchWord, value model.activeWord ]
-      [ boardTable model
-      , input [type' "submit", value "Cast"][]]
-    ]
+    [ h3 [] [ text model.playerStatus ]
+    , boardTable model
+    , div [] [ button [ onClick TouchWord ] [text "Cast"]
+             , button [] [text "Pass"]]]
 
 boardTable : Model -> Html Msg
 boardTable model =

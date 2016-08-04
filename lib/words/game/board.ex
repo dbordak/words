@@ -52,23 +52,31 @@ defmodule Words.Game.Board do
   end
 
   def touch_word(game_id, player_id, word) do
-    game = Words.Game.get_data(game_id)
     board = get_data(game_id)
+    game = Words.Game.get_data(game_id)
 
     cond do
       word == "" ->
         {:error, "No word provided."}
-      player_id == game.red_leader || player_id == game.blue_leader ->
-        {:error, "Player is a team leader."}
       board.word_map[word].touched ->
         {:error, "Word is already touched."}
-      true ->
+      Words.Game.on_blue_team?(game_id, player_id) && not game.blue_turn ->
+        {:error, "It's red's turn."}
+      Words.Game.on_red_team?(game_id, player_id) && game.blue_turn ->
+        {:error, "It's blue's turn."}
+      Words.Game.can_touch_word?(game_id, player_id) ->
         new_word_map = %{board.word_map | word =>
                           %{board.word_map[word] | touched: true}}
+        if !((board.word_map[word].color == @grid_value_red && Words.Game.on_red_team?(game_id, player_id)) ||
+            (board.word_map[word].color == @grid_value_blue && Words.Game.on_blue_team?(game_id, player_id))) do
+          Words.Game.next_turn(game_id)
+        end
 
         Agent.update(ref(game_id), fn(_) -> %{board | word_map: new_word_map} end)
 
         {:ok, new_word_map}
+      true ->
+        {:error, "Player is not a fingerman."}
     end
   end
 

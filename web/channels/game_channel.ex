@@ -23,8 +23,10 @@ defmodule Words.GameChannel do
         "red leader"
       player_id == game.blue_leader ->
         "blue leader"
+      Words.Game.on_red_team?(game_id, player_id) ->
+        "on red team"
       true ->
-        "some schmo"
+        "on blue team"
     end
     enable_buttons = !(player_id == game.red_leader || player_id == game.blue_leader)
     word_map = if enable_buttons do

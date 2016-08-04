@@ -12,9 +12,9 @@ toUrl : Page -> String
 toUrl page =
   case page of
     Lobby ->
-      ""
+      "#"
     Game gameId ->
-      "game/" ++ gameId
+      "#game/" ++ gameId
 
 pageParser : UrlParser.Parser (Page -> a) a
 pageParser =
@@ -24,7 +24,7 @@ pageParser =
 
 urlParser : Navigation.Location -> Result String Page
 urlParser location =
-  UrlParser.parse identity pageParser (String.dropLeft 1 location.pathname)
+  UrlParser.parse identity pageParser (String.dropLeft 1 location.hash)
 
 pageChannel : Page -> String
 pageChannel page =
