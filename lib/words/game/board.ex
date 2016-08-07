@@ -51,27 +51,56 @@ defmodule Words.Game.Board do
     end
   end
 
+  def all_touched?(word_map, color) do
+    word_map
+    |> Enum.filter(fn {word, data} -> data.color == color end)
+    |> Enum.all?(fn {word, data} -> data.touched end)
+  end
+
   def touch_word(game_id, player_id, word) do
     board = get_data(game_id)
     game = Words.Game.get_data(game_id)
 
     cond do
-      word == "" ->
-        {:error, "No word provided."}
       board.word_map[word].touched ->
         {:error, "Word is already touched."}
-      Words.Game.on_blue_team?(game_id, player_id) && not game.blue_turn ->
-        {:error, "It's red's turn."}
-      Words.Game.on_red_team?(game_id, player_id) && game.blue_turn ->
-        {:error, "It's blue's turn."}
+      word == "" ->
+        {:error, "No word provided."}
       Words.Game.can_touch_word?(game_id, player_id) ->
         new_word_map = %{board.word_map | word =>
                           %{board.word_map[word] | touched: true}}
-        if !((board.word_map[word].color == @grid_value_red && Words.Game.on_red_team?(game_id, player_id)) ||
-            (board.word_map[word].color == @grid_value_blue && Words.Game.on_blue_team?(game_id, player_id))) do
-          Words.Game.next_turn(game_id)
+        winner = cond do
+          board.word_map[word].color == @grid_value_ded ->
+            if Words.Game.on_red_team?(game_id, player_id) do
+              :blue
+            else
+              :red
+            end
+          board.word_map[word].color == @grid_value_blue ->
+            if all_touched?(board.word_map, @grid_value_blue) do
+              :blue
+            else
+              false
+            end
+          board.word_map[word].color == @grid_value_red ->
+            if all_touched?(board.word_map, @grid_value_red) do
+              :red
+            else
+              false
+            end
+          true ->
+            false
         end
-
+        cond do
+          winner ->
+            Words.Game.set_winner(game_id, winner)
+          board.word_map[word].color == @grid_value_red && Words.Game.on_red_team?(game_id, player_id) ->
+            Words.Game.dec_hint(game_id)
+          board.word_map[word].color == @grid_value_blue && Words.Game.on_blue_team?(game_id, player_id) ->
+            Words.Game.dec_hint(game_id)
+          true ->
+            Words.Game.next_turn(game_id)
+        end
         Agent.update(ref(game_id), fn(_) -> %{board | word_map: new_word_map} end)
 
         {:ok, new_word_map}

@@ -36,7 +36,7 @@ input[type=radio]:hover + label {
 }
 
 .color-n {
-    color: yellow;
+    color: orange;
 }
 
 .color-u {
@@ -45,4 +45,20 @@ input[type=radio]:hover + label {
 table {
     table-layout: fixed;
     width: 100%;
+}
+
+.team-blue {
+    background-color: light blue;
+}
+
+.team-red {
+    background-color: light red;
+}
+
+.hint-blue {
+    color: blue;
+}
+
+.hint-red {
+    color: red;
 }

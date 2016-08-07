@@ -23,7 +23,6 @@ defmodule Words.Game.Supervisor do
   defp game_data({_id, pid, _type, _modules}) do
     pid
     |> GenServer.call(:get_data)
-    |> Map.take([:id, :blue_leader, :blue_team, :blue_fingerman, :red_leader,
-                :red_fingerman, :red_team, :over, :winner, :blue_turn])
+    |> Map.take([:id, :blue_team, :red_team, :over, :winner, :turn, :hint])
   end
 end

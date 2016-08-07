@@ -9,6 +9,7 @@ import Platform.Cmd
 import Navigation
 import Dict
 import Html
+import String
 
 import Routes exposing (pageChannel)
 import Game
@@ -98,6 +99,43 @@ update msg model =
       , Cmd.none
       )
 
+    SetNewHintWord str ->
+      let
+        oldNewHint = model.newHint
+        newHint = { oldNewHint | word = str}
+      in
+        ( { model | newHint = newHint}
+        , Cmd.none
+        )
+
+    SetNewHintCount str ->
+      let
+        oldNewHint = model.newHint
+        newHint = case String.toInt str of
+          Ok newCount ->
+            { oldNewHint | count = newCount}
+          Err _ ->
+            oldNewHint
+      in
+        ( { model | newHint = newHint}
+        , Cmd.none
+        )
+
+    SendNewHint ->
+      let
+        payload = (JE.object [ ("word", JE.string model.newHint.word), ("count", JE.int model.newHint.count) ])
+        push' =
+          Phoenix.Push.init "game:hint" (pageChannel model.page)
+            |> Phoenix.Push.withPayload payload
+        (phxSocket, phxCmd) = Phoenix.Socket.push push' model.phxSocket
+      in
+        ( { model
+          | newHint = (Hint "" 0 "")
+          , phxSocket = phxSocket
+          }
+        , Cmd.map PhoenixMsg phxCmd
+        )
+
     TouchWord ->
       let
         payload = (JE.object [ ("word", JE.string model.activeWord)])
@@ -106,19 +144,37 @@ update msg model =
             |> Phoenix.Push.withPayload payload
         (phxSocket, phxCmd) = Phoenix.Socket.push push' model.phxSocket
       in
-        ( { model
-          | newMessage = ""
-          , phxSocket = phxSocket
-          }
+        ( { model | phxSocket = phxSocket}
         , Cmd.map PhoenixMsg phxCmd
         )
 
-    ReceiveWordMap raw ->
-      case JD.decodeValue wordMapDecoder raw of
-        Ok wordMapMessage ->
-          ( { model | wordMap = wordMapMessage.word_map}
-          , Cmd.none
-          )
+    PassTurn ->
+      let
+        push' = Phoenix.Push.init "game:pass" (pageChannel model.page)
+        (phxSocket, phxCmd) = Phoenix.Socket.push push' model.phxSocket
+      in
+        ( { model | phxSocket = phxSocket}
+        , Cmd.map PhoenixMsg phxCmd
+        )
+
+    ReceiveTurnInfo raw ->
+      case JD.decodeValue turnInfoDecoder raw of
+        Ok turnInfoMessage ->
+          (case turnInfoMessage.word_map of
+             Just wordMap ->
+               { model
+                 | wordMap = wordMap
+                 , turn = turnInfoMessage.turn}
+             Nothing ->
+               { model | turn = turnInfoMessage.turn}
+          , Cmd.none)
+        Err error ->
+          ( model , Cmd.none )
+
+    ReceiveHint raw ->
+      case JD.decodeValue hintDecoder raw of
+        Ok hint ->
+          ({ model | hint = hint}, Cmd.none)
         Err error ->
           ( model , Cmd.none )
 
@@ -158,26 +214,38 @@ update msg model =
           }
         , Cmd.map PhoenixMsg phxCmd)
 
+    -- TODO
+    GameOver raw ->
+      (model, Cmd.none)
+
     ReceiveInitialData raw ->
       case JD.decodeValue initialDataDecoder raw of
         Ok initialDataMessage ->
           let
             phxSocket =
-              if initialDataMessage.enable_buttons then
-                model.phxSocket |> Phoenix.Socket.on "game:touch" (pageChannel model.page) ReceiveWordMap
+              if initialDataMessage.player_info.can_hint then
+                model.phxSocket
+                  |> Phoenix.Socket.on "game:tl_touch" (pageChannel model.page) ReceiveTurnInfo
+                  |> Phoenix.Socket.on "game:hint" (pageChannel model.page) ReceiveHint
+                  |> Phoenix.Socket.on "game:over" (pageChannel model.page) GameOver
               else
-                model.phxSocket |> Phoenix.Socket.on "game:tl_touch" (pageChannel model.page) ReceiveWordMap
+                model.phxSocket
+                  |> Phoenix.Socket.on "game:touch" (pageChannel model.page) ReceiveTurnInfo
+                  |> Phoenix.Socket.on "game:hint" (pageChannel model.page) ReceiveHint
+                  |> Phoenix.Socket.on "game:over" (pageChannel model.page) GameOver
           in
             ( { model
                 | board = initialDataMessage.board
                 , playerStatus = "You are " ++ initialDataMessage.player_status
-                , enableButtons = initialDataMessage.enable_buttons
                 , wordMap = initialDataMessage.word_map
+                , hint = initialDataMessage.hint
+                , turn = initialDataMessage.turn
+                , playerInfo = initialDataMessage.player_info
                 , phxSocket = phxSocket }
             , Cmd.none
           )
         Err error ->
-          ( model , Cmd.none )
+          ( { model | playerStatus = error} , Cmd.none )
 
     JoinNewGame ->
       let
