@@ -21,8 +21,8 @@ initPhxSocket =
 
 initModel : Model
 initModel =
-  Model "" [] [] "" "" Routes.Lobby "" "" Dict.empty
-    (Hint "" 0 "") (Hint "" 0 "") (PlayerInfo False False False "" "") initPhxSocket
+  Model "" [] [] "" "" Routes.Lobby "" Nothing Dict.empty Nothing
+    (Hint "" 0 "" 0) (PlayerInfo False False False "" "") initPhxSocket
 
 -- Models
 
@@ -35,19 +35,20 @@ type alias Space =
 type alias Hint =
   { word: String
   , count: Int
-  , team: String}
+  , team: String
+  , remaining: Int}
 
 type alias Model =
   { activeWord : String
-  , board : List (List String)
+  , board : List String
   , messages : List String
   , name : String
   , newMessage : String
   , page : Routes.Page
-  , playerStatus : String
   , turn : String
+  , winner : Maybe String
   , wordMap : Dict.Dict String Space
-  , hint : Hint
+  , hint : Maybe Hint
   , newHint : Hint
   , playerInfo : PlayerInfo
   , phxSocket : Phoenix.Socket.Socket Msg
@@ -103,34 +104,32 @@ newUserDecoder =
     ("player_id" := JD.string)
 
 type alias InitialDataMessage =
-  { board : List (List String)
-  , player_status : String
+  { board : List String
   , word_map : Dict.Dict String Space
-  , hint : Hint
+  , hint : Maybe Hint
   , turn : String
   , player_info : PlayerInfo
   }
 
 initialDataDecoder : JD.Decoder InitialDataMessage
 initialDataDecoder =
-  JD.object6 InitialDataMessage
-    ("board" := JD.list (JD.list JD.string))
-    ("player_status" := JD.string)
+  JD.object5 InitialDataMessage
+    ("board" := JD.list JD.string)
     ("word_map" := JD.dict spaceDecoder)
-    ("hint" := hintDecoder)
+    ("hint" := JD.maybe hintDecoder)
     ("turn" := JD.string)
     ("player_info" := playerInfoDecoder)
 
 type alias BoardMessage =
   { player_id : String
-  , board : List (List String)
+  , board : List String
   }
 
 boardDecoder : JD.Decoder BoardMessage
 boardDecoder =
   JD.object2 BoardMessage
     ("player_id" := JD.string)
-    ("board" := JD.list (JD.list JD.string))
+    ("board" := JD.list JD.string)
 
 type alias TurnInfoMessage =
   { word_map : Maybe (Dict.Dict String Space)
@@ -166,12 +165,21 @@ playerInfoDecoder =
     ("id" := JD.string)
     ("team" := JD.string)
 
+type alias GameOverMessage =
+  { winner : Maybe String }
+
+gameOverDecoder : JD.Decoder GameOverMessage
+gameOverDecoder =
+  JD.object1 GameOverMessage
+    ("winner" := JD.maybe JD.string)
+
 hintDecoder : JD.Decoder Hint
 hintDecoder =
-  JD.object3 Hint
+  JD.object4 Hint
     ("word" := JD.string)
     ("count" := JD.int)
     ("team" := JD.string)
+    ("remaining" := JD.int)
 
 spaceDecoder : JD.Decoder Space
 spaceDecoder =

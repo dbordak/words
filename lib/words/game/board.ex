@@ -5,9 +5,7 @@ defmodule Words.Game.Board do
       touched: false
     ]
   end
-  @x_size 5
-  @y_size 5
-
+  @num_words 25
   @num_team_spaces 8
   @num_ded 1
 
@@ -27,7 +25,7 @@ defmodule Words.Game.Board do
   def create(game_id) do
     first_team = :blue
     grid = build_grid
-    word_map = build_word_map(List.flatten(grid), first_team)
+    word_map = build_word_map(grid, first_team)
 
     Agent.start(fn -> %__MODULE__{game_id: game_id, grid: grid,
                                   word_map: word_map, first_team: first_team} end,
@@ -53,13 +51,12 @@ defmodule Words.Game.Board do
 
   def all_touched?(word_map, color) do
     word_map
-    |> Enum.filter(fn {word, data} -> data.color == color end)
-    |> Enum.all?(fn {word, data} -> data.touched end)
+    |> Enum.filter(fn {_, data} -> data.color == color end)
+    |> Enum.all?(fn {_, data} -> data.touched end)
   end
 
   def touch_word(game_id, player_id, word) do
     board = get_data(game_id)
-    game = Words.Game.get_data(game_id)
 
     cond do
       board.word_map[word].touched ->
@@ -110,7 +107,7 @@ defmodule Words.Game.Board do
   end
 
   defp build_word_map(words, first_team) do
-    num_neutral = @x_size*@y_size - @num_ded - @num_team_spaces*2 - 1
+    num_neutral = @num_words - @num_ded - @num_team_spaces*2 - 1
     extra_color = cond do
       first_team == :blue ->
         @grid_value_blue
@@ -130,8 +127,7 @@ defmodule Words.Game.Board do
   end
 
   defp build_grid do
-    Words.Game.Dictionary.get_words(@x_size*@y_size)
-    |> Enum.chunk(@x_size)
+    Words.Game.Dictionary.get_words(@num_words)
   end
 
   defp ref(game_id), do: {:global, {:board, game_id}}

@@ -7,6 +7,7 @@ defmodule Words.Game.Dictionary do
     "Japan",
     "Switzerland",
     "Canary Islands",
+	"Italy",
     "aura",
     "wagon",
     "speed",
@@ -27,9 +28,9 @@ defmodule Words.Game.Dictionary do
     "sun",
     "awaken",
     "7-Up",
-    "platinum",
     "mask",
-	"Italy",
+    "platinum",
+    "silver",
 
     # Tarot
     "magician",

@@ -10,6 +10,7 @@ defmodule Words.Game do
     defstruct [
       word: "",
       count: 0,
+      remaining: 0,
       team: nil
     ]
   end
@@ -79,11 +80,11 @@ defmodule Words.Game do
   end
 
   def handle_call(:dec_hint, _from, game) do
-    new_count = game.hint.count - 1
+    new_count = game.hint.remaining - 1
     if new_count < 0 do
       {:reply, {:ok, self}, _next_turn(game)}
     else
-      {:reply, {:ok, self}, put_in(game.hint.count, new_count)}
+      {:reply, {:ok, self}, put_in(game.hint.remaining, new_count)}
     end
   end
 
@@ -109,6 +110,7 @@ defmodule Words.Game do
 
   def handle_call(:get_data, _from, game), do: {:reply, game, game}
   def handle_call({:get_data, player_id}, _from, game) do
+    #TODO
     nil
   end
 
@@ -157,7 +159,7 @@ defmodule Words.Game do
 
   def can_vote?(game_id, player_id) do
     game = get_data(game_id)
-    Enum.member?(game.red_team ++ game.blue_team, player_id)
+    Enum.member?(game.red_team.voters, player_id) || Enum.member?(game.blue_team.voters, player_id)
   end
 
   def on_team?(team, player_id) do
@@ -180,7 +182,7 @@ defmodule Words.Game do
     {:ok, board_pid} = create_board(game.id)
     Process.monitor(board_pid)
     board = Words.Game.Board.get_data(game.id)
-    %{game | blue_team: %Team{leader: player_id}, red_team: %Team{}, hint: %Hint{team: board.first_team}, turn: board.first_team}
+    %{game | blue_team: %Team{leader: player_id}, red_team: %Team{}, turn: board.first_team}
   end
   defp add_player(%__MODULE__{red_team: %Team{leader: nil}} = game, player_id) do
     %{game | red_team: %__MODULE__.Team{leader: player_id}}

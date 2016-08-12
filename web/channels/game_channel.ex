@@ -18,21 +18,9 @@ defmodule Words.GameChannel do
     game_id = socket.assigns.game_id
     board = Game.Board.get_data(game_id)
     game = Game.get_data(game_id)
-    player_status = cond do
-      player_id == game.red_team.leader ->
-        "red leader"
-      player_id == game.blue_team.leader ->
-        "blue leader"
-      Words.Game.on_red_team?(game_id, player_id) ->
-        "on red team"
-      true ->
-        "on blue team"
-    end
 
     #TODO: can_chat
-    can_hint = player_id == game.red_team.leader || player_id == game.blue_team.leader
-    can_touch = player_id == game.red_team.fingerman || player_id == game.blue_team.fingerman
-    can_vote = Enum.member?(game.red_team.voters, player_id) || Enum.member?(game.blue_team.voters, player_id)
+    can_hint = Game.can_give_hint?(game_id, player_id)
     team = cond do
       Words.Game.on_blue_team?(game_id, player_id) ->
         :blue
@@ -48,12 +36,11 @@ defmodule Words.GameChannel do
 
     broadcast! socket, "game:player_joined", %{player_id: player_id}
     {:reply, {:ok, %{board: board.grid,
-                     player_status: player_status,
                      player_info: %{id: player_id,
                                     team: team,
                                     can_hint: can_hint,
-                                    can_touch: can_touch,
-                                    can_vote: can_vote},
+                                    can_touch: Game.can_touch_word?(game_id, player_id),
+                                    can_vote: Game.can_vote?(game_id, player_id)},
                      word_map: word_map,
                      turn: game.turn,
                      hint: game.hint}}, socket}
@@ -73,6 +60,7 @@ defmodule Words.GameChannel do
               broadcast(socket, "game:over", %{winner: game.winner})
             end
 			broadcast(socket, "game:touch", %{word_map: public_word_map, turn: game.turn})
+            broadcast(socket, "game:hint", game.hint)
             {:noreply, socket}
           {:error, reason} ->
             {:reply, {:error, %{reason: reason}}, socket}
@@ -118,7 +106,7 @@ defmodule Words.GameChannel do
                 :red
             end
             Words.Game.next_phase(game_id)
-			hint = %Words.Game.Hint{word: word, count: count, team: team}
+			hint = %Words.Game.Hint{word: word, count: count, team: team, remaining: count}
 			Words.Game.set_hint(game_id, hint)
             broadcast(socket, "game:hint", hint)
             {:noreply, socket}

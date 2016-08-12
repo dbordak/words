@@ -58,7 +58,8 @@ update msg model =
         tempModel = {model | phxSocket = phxSocket}
         (newModel, chanCmd) = case model.page of
           Routes.Lobby ->
-            update GetGamesList tempModel
+            -- update GetGamesList tempModel
+            update NoOp tempModel
           Routes.Game _ ->
             update StartGame tempModel
       in
@@ -130,7 +131,7 @@ update msg model =
         (phxSocket, phxCmd) = Phoenix.Socket.push push' model.phxSocket
       in
         ( { model
-          | newHint = (Hint "" 0 "")
+          | newHint = (Hint "" 0 "" 0)
           , phxSocket = phxSocket
           }
         , Cmd.map PhoenixMsg phxCmd
@@ -174,7 +175,7 @@ update msg model =
     ReceiveHint raw ->
       case JD.decodeValue hintDecoder raw of
         Ok hint ->
-          ({ model | hint = hint}, Cmd.none)
+          ({ model | hint = Just hint}, Cmd.none)
         Err error ->
           ( model , Cmd.none )
 
@@ -214,9 +215,12 @@ update msg model =
           }
         , Cmd.map PhoenixMsg phxCmd)
 
-    -- TODO
     GameOver raw ->
-      (model, Cmd.none)
+      case JD.decodeValue gameOverDecoder raw of
+        Ok gameOverData ->
+          ({ model | winner = gameOverData.winner}, Cmd.none)
+        Err error ->
+          ( model , Cmd.none )
 
     ReceiveInitialData raw ->
       case JD.decodeValue initialDataDecoder raw of
@@ -236,7 +240,6 @@ update msg model =
           in
             ( { model
                 | board = initialDataMessage.board
-                , playerStatus = "You are " ++ initialDataMessage.player_status
                 , wordMap = initialDataMessage.word_map
                 , hint = initialDataMessage.hint
                 , turn = initialDataMessage.turn
@@ -245,7 +248,7 @@ update msg model =
             , Cmd.none
           )
         Err error ->
-          ( { model | playerStatus = error} , Cmd.none )
+          ( model, Cmd.none )
 
     JoinNewGame ->
       let

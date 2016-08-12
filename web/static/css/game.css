@@ -1,64 +1,128 @@
-input[type=radio] {
-    display: none;
+/* .container, main, #elm-container, #lobby-container, #game-container {
+   height: 100vh;
+   } */
+
+#elm-container {
+    width: 100vw;
+    height: 100vh;
 }
 
-.word-label {
+#lobby-container, #game-container {
+    min-height: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+	padding: 1em;
+}
+
+#game-container > * {
+    max-width: 1200px;
+}
+
+.button.word-label {
     display: block;
+    color: #111111;
     background-color: #e7e7e7;
-    border-width: 2px;
-    border-style: solid;
-    border-color: #ddd;
+    border: 2px solid white;
     padding: 10px;
     text-align: center;
     border-radius: 5px;
 }
 
-input[type=radio]:checked + label {
-    background-color: #d0d0d0 !important;
+button.game-button {
+    background-color: #B10DC9;
 }
 
-input[type=radio]:hover + label {
-    background-color: #ffffff;
-    border-color: black;
+.button.word-label:hover {
+    border: 2px solid #B10DC9;
 }
 
-.color-b {
-    color: blue;
+.button.word-label.color-b {
+    color: #0074D9;
 }
 
-.color-r {
-    color: red;
+.button.word-label.color-r {
+    color: #FF4136;
 }
 
-.color-x {
+.button.word-label.color-x {
     color: white;
-    background-color: black !important;
+    background-color: #111111 !important;
 }
 
-.color-n {
-    color: orange;
+.button.word-label.color-n {
+    color: #FF851B;
 }
 
 .color-u {
 }
 
-table {
-    table-layout: fixed;
+#hint-display {
+    display: block;
+    color: white;
     width: 100%;
+    text-align: center;
+    border-radius: 0.2em;
+    background-color: #AAAAAA;
 }
 
-.team-blue {
-    background-color: light blue;
+#hint-display.hint-blue {
+    background-color: #0074D9;
 }
 
-.team-red {
-    background-color: light red;
+#hint-display.hint-red {
+    background-color: #FF4136;
 }
 
-.hint-blue {
-    color: blue;
+#word-list {
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+	margin: 0.5em 0;
 }
 
-.hint-red {
-    color: red;
+#word-list > li {
+    list-style: none;
+    display: block;
+    margin: 0 0.3em;
+}
+
+#hint-input, #touch-buttons {
+    display: flex;
+    justify-content: center;
+	width: 100%;
+	align-content: space-between;
+}
+
+#touch-buttons button,
+#hint-input button,
+#hint-input input {
+    margin: 0.5em;
+}
+
+#hint-count {
+    width: 6em;
+}
+
+#game-container.team-blue {
+    background-color: #729fcf;
+}
+
+#game-container.team-red {
+    background-color: #f2777a;
+}
+
+@media all and (max-width: 500px) {
+	#hint-input {
+		flex-wrap: wrap;
+	}
+	#hint-word {
+		width: 100%;
+	}
+	#lobby-container, #game-container {
+		padding: 0.5em;
+	}
 }

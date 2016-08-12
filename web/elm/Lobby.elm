@@ -1,7 +1,7 @@
 module Lobby exposing (..) --where
 
-import Html exposing (Html, h3, div, text, ul, li, input, form, button, br, table, tbody, tr, td)
-import Html.Attributes exposing (type', value, placeholder)
+import Html exposing (Html, h1, div, text, ul, li, input, form, button, br, table, tbody, tr, td)
+import Html.Attributes exposing (type', value, placeholder, class, id)
 import Html.Events exposing (onInput, onSubmit, onClick)
 import Html.App
 import Platform.Cmd
@@ -16,14 +16,12 @@ import Models exposing (..)
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ h3 [] [ text "Games:" ]
-    , div
-        []
+  div [ id "lobby-container" ]
+    [ h1 [] [ text "Welcome to Words!" ]
+    , div []
         [ input [placeholder "Name", type' "text", value model.name, onInput SetName ] []
         , button [ onClick JoinNewGame ] [ text "New Game" ]
         ]
-    , channelsTable (Dict.values model.phxSocket.channels)
     ]
 
 channelsTable : List (Phoenix.Channel.Channel Msg) -> Html Msg
