@@ -35,8 +35,7 @@ defmodule Words.GameChannel do
     end
 
     broadcast! socket, "game:player_joined", %{player_id: player_id}
-    {:reply, {:ok, %{board: board.grid,
-                     player_info: %{id: player_id,
+    {:reply, {:ok, %{player_info: %{id: player_id,
                                     team: team,
                                     can_hint: can_hint,
                                     can_touch: Game.can_touch_word?(game_id, player_id),
@@ -54,12 +53,12 @@ defmodule Words.GameChannel do
       {:ok, _} ->
         case Game.Board.touch_word(game_id, player_id, word) do
           {:ok, new_word_map} ->
-            public_word_map = Game.Board.public_word_map(new_word_map)
+            word_map_diff = Game.Board.only_touched(new_word_map)
             game = Game.get_data(game_id)
             if game.over do
               broadcast(socket, "game:over", %{winner: game.winner})
             end
-			broadcast(socket, "game:touch", %{word_map: public_word_map, turn: game.turn})
+			broadcast(socket, "game:touch", %{word_map: word_map_diff, turn: game.turn})
             broadcast(socket, "game:hint", game.hint)
             {:noreply, socket}
           {:error, reason} ->

@@ -9,6 +9,7 @@
 
     <title>Hello Words!</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <link href='https://fonts.googleapis.com/css?family=EB+Garamond' rel='stylesheet' type='text/css'>
   </head>
 
   <body>

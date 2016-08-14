@@ -161,14 +161,17 @@ update msg model =
     ReceiveTurnInfo raw ->
       case JD.decodeValue turnInfoDecoder raw of
         Ok turnInfoMessage ->
-          (case turnInfoMessage.word_map of
-             Just wordMap ->
-               { model
-                 | wordMap = wordMap
-                 , turn = turnInfoMessage.turn}
-             Nothing ->
-               { model | turn = turnInfoMessage.turn}
-          , Cmd.none)
+          let
+            tempModel = { model
+                        | turn = turnInfoMessage.turn
+                        , hint = Nothing }
+          in
+            ( case turnInfoMessage.word_map of
+                Just wordMap ->
+                  { tempModel | wordMap = (Dict.union wordMap tempModel.wordMap) }
+                Nothing ->
+                  tempModel
+            , Cmd.none)
         Err error ->
           ( model , Cmd.none )
 
@@ -184,23 +187,14 @@ update msg model =
       , Cmd.none
       )
 
-    ReceiveBoard raw ->
-      case JD.decodeValue boardDecoder raw of
-        Ok boardMessage ->
-          ( { model | board = boardMessage.board}
-          , Cmd.none
-          )
-        Err error ->
-          ( model , Cmd.none )
-
     ReceiveNewUserMessage raw ->
-        case JD.decodeValue newUserDecoder raw of
-            Ok user ->
-                ({ model | messages = (user.player_id ++ " has entered.")
-                 :: model.messages}
-                , Cmd.none)
-            Err error ->
-                ( model, Cmd.none )
+      case JD.decodeValue newUserDecoder raw of
+        Ok user ->
+          ({ model | messages = (user.player_id ++ " has entered.")
+           :: model.messages}
+          , Cmd.none)
+        Err error ->
+          ( model, Cmd.none )
 
     StartGame ->
       let
@@ -227,19 +221,13 @@ update msg model =
         Ok initialDataMessage ->
           let
             phxSocket =
-              if initialDataMessage.player_info.can_hint then
-                model.phxSocket
-                  |> Phoenix.Socket.on "game:tl_touch" (pageChannel model.page) ReceiveTurnInfo
-                  |> Phoenix.Socket.on "game:hint" (pageChannel model.page) ReceiveHint
-                  |> Phoenix.Socket.on "game:over" (pageChannel model.page) GameOver
-              else
-                model.phxSocket
-                  |> Phoenix.Socket.on "game:touch" (pageChannel model.page) ReceiveTurnInfo
-                  |> Phoenix.Socket.on "game:hint" (pageChannel model.page) ReceiveHint
-                  |> Phoenix.Socket.on "game:over" (pageChannel model.page) GameOver
+              model.phxSocket
+                |> Phoenix.Socket.on "game:touch" (pageChannel model.page) ReceiveTurnInfo
+                |> Phoenix.Socket.on "game:hint" (pageChannel model.page) ReceiveHint
+                |> Phoenix.Socket.on "game:over" (pageChannel model.page) GameOver
           in
             ( { model
-                | board = initialDataMessage.board
+                | words = (Dict.keys initialDataMessage.word_map)
                 , wordMap = initialDataMessage.word_map
                 , hint = initialDataMessage.hint
                 , turn = initialDataMessage.turn
@@ -256,10 +244,7 @@ update msg model =
                 |> Phoenix.Push.onOk ReceiveGameId
         (phxSocket, phxCmd) = Phoenix.Socket.push push' model.phxSocket
       in
-        ( { model
-          | newMessage = ""
-          , phxSocket = phxSocket
-          }
+        ( { model | phxSocket = phxSocket}
         , Cmd.map PhoenixMsg phxCmd
         )
 
@@ -275,7 +260,6 @@ update msg model =
         push' =
           Phoenix.Push.init "current_games" "lobby"
         (phxSocket, phxCmd) = Phoenix.Socket.push push' model.phxSocket
-               --  ({ model | messages = (str ++ " has entered.") :: model.messages}
       in
         ( { model
           | newMessage = ""
@@ -324,6 +308,3 @@ main =
     , urlUpdate = urlUpdate
     , subscriptions = subscriptions
     }
-
-
-    -- |> Phoenix.Socket.on "game:player_joined" model.channel ReceiveNewUserMessage

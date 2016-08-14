@@ -17,18 +17,17 @@ defmodule Words.Game.Board do
 
   defstruct [
     game_id: nil,
-    grid: {},
     word_map: %{},
     first_team: nil
   ]
 
   def create(game_id) do
     first_team = :blue
-    grid = build_grid
-    word_map = build_word_map(grid, first_team)
+    words = Words.Game.Dictionary.get_words(@num_words)
+    word_map = build_word_map(words, first_team)
 
-    Agent.start(fn -> %__MODULE__{game_id: game_id, grid: grid,
-                                  word_map: word_map, first_team: first_team} end,
+    Agent.start(fn -> %__MODULE__{game_id: game_id, word_map: word_map,
+                                  first_team: first_team} end,
       name: ref(game_id))
   end
 
@@ -38,6 +37,11 @@ defmodule Words.Game.Board do
 
   def public_word_map(word_map) do
     Enum.map(word_map, fn {word, space} -> {word, hide_space(space)} end)
+    |> Enum.into(%{})
+  end
+
+  def only_touched(word_map) do
+    Enum.filter(word_map, fn {word, space} -> space.touched end)
     |> Enum.into(%{})
   end
 
@@ -124,10 +128,6 @@ defmodule Words.Game.Board do
 
     Enum.zip(words, colors)
     |> Enum.into(%{})
-  end
-
-  defp build_grid do
-    Words.Game.Dictionary.get_words(@num_words)
   end
 
   defp ref(game_id), do: {:global, {:board, game_id}}

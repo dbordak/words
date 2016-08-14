@@ -40,7 +40,7 @@ type alias Hint =
 
 type alias Model =
   { activeWord : String
-  , board : List String
+  , words : List String
   , messages : List String
   , name : String
   , newMessage : String
@@ -69,7 +69,6 @@ type Msg
   | PassTurn
   | ReceiveTurnInfo JE.Value
   | ReceiveHint JE.Value
-  | ReceiveBoard JE.Value
   | ReceiveNewUserMessage JE.Value
   | LeaveChannel
   | StartGame
@@ -104,8 +103,7 @@ newUserDecoder =
     ("player_id" := JD.string)
 
 type alias InitialDataMessage =
-  { board : List String
-  , word_map : Dict.Dict String Space
+  { word_map : Dict.Dict String Space
   , hint : Maybe Hint
   , turn : String
   , player_info : PlayerInfo
@@ -113,23 +111,11 @@ type alias InitialDataMessage =
 
 initialDataDecoder : JD.Decoder InitialDataMessage
 initialDataDecoder =
-  JD.object5 InitialDataMessage
-    ("board" := JD.list JD.string)
+  JD.object4 InitialDataMessage
     ("word_map" := JD.dict spaceDecoder)
     ("hint" := JD.maybe hintDecoder)
     ("turn" := JD.string)
     ("player_info" := playerInfoDecoder)
-
-type alias BoardMessage =
-  { player_id : String
-  , board : List String
-  }
-
-boardDecoder : JD.Decoder BoardMessage
-boardDecoder =
-  JD.object2 BoardMessage
-    ("player_id" := JD.string)
-    ("board" := JD.list JD.string)
 
 type alias TurnInfoMessage =
   { word_map : Maybe (Dict.Dict String Space)

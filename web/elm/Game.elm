@@ -1,6 +1,6 @@
 module Game exposing (..) --where
 
-import Html exposing (Html, h3, h4, div, text, ul, li, input, form, button, br, table, tbody, tr, td, span, label, article, header, section, footer)
+import Html exposing (Html, h1, h3, div, text, ul, li, input, form, button, br, table, tbody, tr, td, span, label, article, header, section, footer)
 import Html.Attributes exposing (type', value, placeholder, disabled, name, for, id, class, classList, checked)
 import Html.Events exposing (onInput, onSubmit, onClick, onCheck)
 import Dict
@@ -16,7 +16,7 @@ view model =
     , touchButtons model
     , voteButton model
     , hintInput model
-    , gameOverModal model]
+    , gameOverScreen model]
 
 hintDisplay : Maybe Hint -> Html Msg
 hintDisplay mHint =
@@ -57,7 +57,7 @@ voteButton model =
 boardTable : Model -> Html Msg
 boardTable model =
   ul [ id "word-list" ]
-    (List.map (boardCell model) model.board)
+    (List.map (boardCell model) model.words)
 
 boardCell : Model -> String -> Html Msg
 boardCell model cell =
@@ -95,3 +95,16 @@ gameOverModal model =
           , section [class "content"] [ text (winner ++ " wins!")]
           , footer []
             [ label [for "game-over-modal", class "button game-button"] [text "Ok"]]]]
+
+gameOverScreen : Model -> Html Msg
+gameOverScreen model =
+  case model.winner of
+    Nothing ->
+      text ""
+    Just winner ->
+      div [ id "game-over" ]
+        [ div [class "overlay"] []
+        , div [class "message"]
+          [ h1 [] [text "GAME OVER"]
+          , h3 [] [text (winner ++ " team wins")]]
+        ]
