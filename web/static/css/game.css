@@ -1,13 +1,77 @@
-/* .container, main, #elm-container, #lobby-container, #game-container {
-   height: 100vh;
-   } */
-
 #elm-container {
     width: 100vw;
     height: 100vh;
 }
 
+#game-chat-container {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+#chat-container {
+    width: 100%;
+    flex-basis: 30em;
+    max-width: 30em;
+    height: 100vh;
+    background-color: #85144b;
+    padding: 0.5em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: 'Inconsolata', monospace;
+    font-size: 12pt;
+}
+
+#chat-container li {
+    margin: 0;
+}
+
+#chat-list-box {
+    margin: 0 0 0.5em 0;
+    background-color: white;
+    padding: 0.5em 0;
+    border-radius: 0.2em;
+    overflow: hidden;
+    flex: 1 1 auto;
+}
+
+#chat-list {
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: white;
+    list-style: none;
+    padding: 0 0.5em;
+    margin: 0;
+    height: 100%;
+}
+
+span.rank-leader {
+    padding: 0.1em;
+    border-radius: 0.2em;
+}
+span.rank-leader.team-blue {
+    color: white;
+    background-color: #0074D9;
+}
+span.rank-leader.team-red {
+    color: white;
+    background-color: #FF4136;
+}
+span.rank-fingerman,
+span.rank-leader {
+    font-weight: bold;
+}
+span.team-blue {
+    color: #0074D9;
+}
+span.team-red {
+    color: #FF4136;
+}
+
 #lobby-container, #game-container {
+    width: 100%;
     min-height: 100%;
     margin: 0 auto;
     display: flex;
@@ -27,9 +91,10 @@
     color: #111111;
     background-color: #dddddd;
     border: 2px solid white;
-    padding: 10px;
+    padding: 5px 10px;
     text-align: center;
     border-radius: 5px;
+    margin: 0;
 }
 
 button.game-button {
@@ -92,7 +157,7 @@ button.game-button {
 #word-list > li {
     list-style: none;
     display: block;
-    margin: 0 0.3em;
+    margin: 0.2em;
 }
 
 #hint-input, #touch-buttons {
@@ -158,7 +223,7 @@ button.game-button {
     padding: 0;
 }
 
-@media all and (max-width: 500px) {
+@media all and (max-width: 600px) {
 	#hint-input {
 		flex-wrap: wrap;
 	}
@@ -168,4 +233,11 @@ button.game-button {
 	#lobby-container, #game-container {
 		padding: 0.5em;
 	}
+    #game-chat-container {
+        flex-direction: column;
+    }
+    #chat-container {
+        max-width: 100vw;
+        max-height: 30em;
+    }
 }

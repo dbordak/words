@@ -69,7 +69,10 @@ defmodule Words.Game.Dictionary do
     "trolley",
     "boy",
     "coconut",
-    "gun"
+    "gun",
+    "space",
+    "jam",
+    "basketball"
 
     # adjectives don't work too well
     # "dark",

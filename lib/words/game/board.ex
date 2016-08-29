@@ -78,13 +78,13 @@ defmodule Words.Game.Board do
               :red
             end
           board.word_map[word].color == @grid_value_blue ->
-            if all_touched?(board.word_map, @grid_value_blue) do
+            if all_touched?(new_word_map, @grid_value_blue) do
               :blue
             else
               false
             end
           board.word_map[word].color == @grid_value_red ->
-            if all_touched?(board.word_map, @grid_value_red) do
+            if all_touched?(new_word_map, @grid_value_red) do
               :red
             else
               false

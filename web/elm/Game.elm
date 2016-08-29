@@ -1,6 +1,6 @@
 module Game exposing (..) --where
 
-import Html exposing (Html, h1, h3, div, text, ul, li, input, form, button, br, table, tbody, tr, td, span, label, article, header, section, footer)
+import Html exposing (Html, h1, h3, div, text, ul, li, input, button, br, table, tbody, tr, td, span, label, article, header, section, footer)
 import Html.Attributes exposing (type', value, placeholder, disabled, name, for, id, class, classList, checked)
 import Html.Events exposing (onInput, onSubmit, onClick, onCheck)
 import Dict
@@ -69,16 +69,16 @@ boardCell model cell =
                     val
   in
     li []
-      [input [type' "radio", name "board", value cell, id cell,
+      [label [classList [
+                 ("toggle", True),
+                 ("button", True),
+                 ("word-label", True),
+                 ("color-" ++ wordStats.color, True),
+                 ("touched", wordStats.touched)]]
+         [input [type' "radio", name "board", value cell,
                  onCheck (\_ -> SetActiveWord cell),
                  disabled (model.playerInfo.can_hint || wordStats.touched)] []
-      , label [for cell, classList [
-                  ("toggle", True),
-                  ("button", True),
-                  ("word-label", True),
-                  ("color-" ++ wordStats.color, True),
-                  ("touched", wordStats.touched)]]
-        [text cell]]
+         , text cell]]
 
 gameOverModal : Model -> Html Msg
 gameOverModal model =
@@ -103,7 +103,8 @@ gameOverScreen model =
       text ""
     Just winner ->
       div [ id "game-over" ]
-        [ div [class "overlay"] []
+        [ input [type' "checkbox", id "game-over-screen", checked True] []
+        , label [for "game-over-screen", class "overlay"] []
         , div [class "message"]
           [ h1 [] [text "GAME OVER"]
           , h3 [] [text (winner ++ " team wins")]]

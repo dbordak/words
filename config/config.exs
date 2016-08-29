@@ -8,7 +8,7 @@ use Mix.Config
 # General application configuration
 config :words,
   ecto_repos: [Words.Repo],
-  id_length: 8
+  id_length: 4
 
 # Configures the endpoint
 config :words, Words.Endpoint,

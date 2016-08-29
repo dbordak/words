@@ -2,6 +2,7 @@ module Models exposing (..)
 
 import Dict
 import Phoenix.Socket
+import Dom
 import Json.Encode as JE
 import Json.Decode as JD exposing ((:=))
 
@@ -41,7 +42,7 @@ type alias Hint =
 type alias Model =
   { activeWord : String
   , words : List String
-  , messages : List String
+  , messages : List ChatMessage
   , name : String
   , newMessage : String
   , page : Routes.Page
@@ -60,6 +61,8 @@ type Msg
   | SetName String
   | SendMessage
   | ReceiveChatMessage JE.Value
+  | ScrollSuccess ()
+  | ScrollError Dom.Error
   | SetNewMessage String
   | SetNewHintWord String
   | SetNewHintCount String
@@ -84,15 +87,19 @@ type Msg
 -- Json Decoders
 
 type alias ChatMessage =
-  { user : String
+  { user : Maybe String
   , body : String
+  , team : String
+  , rank : String
   }
 
 chatMessageDecoder : JD.Decoder ChatMessage
 chatMessageDecoder =
-  JD.object2 ChatMessage
-    ("user" := JD.string)
+  JD.object4 ChatMessage
+    ("user" := JD.maybe JD.string)
     ("body" := JD.string)
+    ("team" := JD.string)
+    ("rank" := JD.string)
 
 type alias NewUserMessage =
   { player_id : String }

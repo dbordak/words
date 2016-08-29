@@ -45,6 +45,30 @@ defmodule Words.GameChannel do
                      hint: game.hint}}, socket}
   end
 
+  def handle_in("game:msg", msg, socket) do
+    player_id = socket.assigns.player_id
+    game_id = socket.assigns.game_id
+
+    team = cond do
+      Game.on_blue_team?(game_id, player_id) ->
+        :blue
+      Game.on_red_team?(game_id, player_id) ->
+        :red
+    end
+
+    rank = cond do
+      Game.can_give_hint?(game_id, player_id) ->
+        :leader
+      Game.can_touch_word?(game_id, player_id) ->
+        :fingerman
+      true ->
+        :voter
+    end
+
+    broadcast socket, "game:msg", %{user: player_id, body: msg["body"], team: team, rank: rank}
+    {:reply, {:ok, %{msg: msg["body"]}}, socket}
+  end
+
   def handle_in("game:touch", %{"word" => word}, socket) do
     player_id = socket.assigns.player_id
     game_id = socket.assigns.game_id

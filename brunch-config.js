@@ -47,6 +47,7 @@ exports.config = {
       "web/elm/Routes.elm",
       "web/elm/Main.elm",
       "web/elm/Models.elm",
+      "web/elm/Chat.elm",
       "web/elm/Lobby.elm"
     ],
 

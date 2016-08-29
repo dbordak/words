@@ -9,10 +9,14 @@ import Platform.Cmd
 import Navigation
 import Dict
 import Html
+import Html.Attributes
+import Dom.Scroll exposing (toBottom)
 import String
+import Task
 
 import Routes exposing (pageChannel)
 import Game
+import Chat
 import Lobby
 import Models exposing (..)
 
@@ -75,7 +79,7 @@ update msg model =
       let
         payload = (JE.object [ ("user", JE.string model.name), ("body", JE.string model.newMessage) ])
         push' =
-          Phoenix.Push.init "new:msg" "rooms:lobby"
+          Phoenix.Push.init "game:msg" (pageChannel model.page)
             |> Phoenix.Push.withPayload payload
         (phxSocket, phxCmd) = Phoenix.Socket.push push' model.phxSocket
       in
@@ -89,11 +93,17 @@ update msg model =
     ReceiveChatMessage raw ->
       case JD.decodeValue chatMessageDecoder raw of
         Ok chatMessage ->
-          ( { model | messages = (chatMessage.user ++ ": " ++ chatMessage.body) :: model.messages }
-          , Cmd.none
+          ( { model | messages = chatMessage :: model.messages }
+          , Task.perform ScrollError ScrollSuccess (toBottom "chat-list")
           )
         Err error ->
           ( model, Cmd.none )
+
+    ScrollSuccess _ ->
+      ( model, Cmd.none )
+
+    ScrollError _ ->
+      ( model, Cmd.none )
 
     SetName str ->
       ( { model | name = str }
@@ -190,8 +200,9 @@ update msg model =
     ReceiveNewUserMessage raw ->
       case JD.decodeValue newUserDecoder raw of
         Ok user ->
-          ({ model | messages = (user.player_id ++ " has entered.")
-           :: model.messages}
+          ( --{ model | messages = (user.player_id ++ " has entered.")
+           --:: model.messages}
+              model
           , Cmd.none)
         Err error ->
           ( model, Cmd.none )
@@ -225,6 +236,7 @@ update msg model =
                 |> Phoenix.Socket.on "game:touch" (pageChannel model.page) ReceiveTurnInfo
                 |> Phoenix.Socket.on "game:hint" (pageChannel model.page) ReceiveHint
                 |> Phoenix.Socket.on "game:over" (pageChannel model.page) GameOver
+                |> Phoenix.Socket.on "game:msg" (pageChannel model.page) ReceiveChatMessage
           in
             ( { model
                 | words = (Dict.keys initialDataMessage.word_map)
@@ -277,12 +289,12 @@ update msg model =
         )
 
     ShowJoinedMessage channelName ->
-      ( { model | messages = ("Joined channel " ++ channelName) :: model.messages }
+      ( model --{ model | messages = ("Joined channel " ++ channelName) :: model.messages }
       , Cmd.none
       )
 
     ShowLeftMessage channelName ->
-      ( { model | messages = ("Left channel " ++ channelName) :: model.messages }
+      ( model --{ model | messages = ("Left channel " ++ channelName) :: model.messages }
       , Cmd.none
       )
 
@@ -294,7 +306,10 @@ view : Model -> Html.Html Msg
 view model =
   case model.page of
     Routes.Game _ ->
-      Game.view model
+      Html.div [ Html.Attributes.id "game-chat-container" ]
+        [ Game.view model
+        , Chat.view model
+        ]
     Routes.Lobby ->
       Lobby.view model
 
