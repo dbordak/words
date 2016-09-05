@@ -93,7 +93,7 @@ defmodule Words.Game do
       game.turn == :blue -> :red
       game.turn == :red -> :blue
     end
-    %{game | turn: new_turn, phase: :hint}
+    %{game | turn: new_turn, phase: :hint, hint: nil}
   end
 
   def handle_call(:next_turn, _from, game) do

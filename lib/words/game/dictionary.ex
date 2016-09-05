@@ -72,7 +72,16 @@ defmodule Words.Game.Dictionary do
     "gun",
     "space",
     "jam",
-    "basketball"
+    "basketball",
+	"name",
+	"wrestler",
+
+	"night",
+	"knight",
+	"dictionary",
+	"sandwich",
+	"witch",
+	"soap"
 
     # adjectives don't work too well
     # "dark",

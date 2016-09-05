@@ -83,7 +83,9 @@ defmodule Words.GameChannel do
               broadcast(socket, "game:over", %{winner: game.winner})
             end
 			broadcast(socket, "game:touch", %{word_map: word_map_diff, turn: game.turn})
-            broadcast(socket, "game:hint", game.hint)
+            if game.hint do
+              broadcast(socket, "game:hint", game.hint)
+            end
             {:noreply, socket}
           {:error, reason} ->
             {:reply, {:error, %{reason: reason}}, socket}

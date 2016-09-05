@@ -1,6 +1,6 @@
 module Game exposing (..) --where
 
-import Html exposing (Html, h1, h3, div, text, ul, li, input, button, br, table, tbody, tr, td, span, label, article, header, section, footer)
+import Html exposing (Html, h1, h3, div, text, input, button, span, label, article, header, section, footer)
 import Html.Attributes exposing (type', value, placeholder, disabled, name, for, id, class, classList, checked)
 import Html.Events exposing (onInput, onSubmit, onClick, onCheck)
 import Dict
@@ -11,21 +11,29 @@ import Models exposing (..)
 view : Model -> Html Msg
 view model =
   div [ id "game-container", class ("team-" ++ model.playerInfo.team )]
-    [ hintDisplay model.hint
+    [ topBar model
     , boardTable model
     , touchButtons model
     , voteButton model
     , hintInput model
     , gameOverScreen model]
 
+topBar : Model -> Html Msg
+topBar model =
+  div [ id "top-bar" ]
+    [ settingsModal model
+    , hintDisplay model.hint
+    , helpModal model
+    ]
+
 hintDisplay : Maybe Hint -> Html Msg
 hintDisplay mHint =
   case mHint of
     Just hint ->
-      h3 [ class ("hint-" ++ hint.team), id "hint-display"]
+      label [ class ("hint-" ++ hint.team), id "hint-display"]
         [text ("Current hint: " ++ hint.word ++ ", " ++ (toString hint.count) ++ " (Remaining: " ++ (toString (hint.remaining + 1)) ++ ")")]
     Nothing ->
-      h3 [ id "hint-display" ]
+      label [ id "hint-display" ]
         [ text "No current hint."]
 
 hintInput: Model -> Html Msg
@@ -56,7 +64,7 @@ voteButton model =
 
 boardTable : Model -> Html Msg
 boardTable model =
-  ul [ id "word-list" ]
+  div [ id "word-list" ]
     (List.map (boardCell model) model.words)
 
 boardCell : Model -> String -> Html Msg
@@ -68,17 +76,45 @@ boardCell model cell =
                   Just val ->
                     val
   in
-    li []
-      [label [classList [
-                 ("toggle", True),
-                 ("button", True),
-                 ("word-label", True),
-                 ("color-" ++ wordStats.color, True),
-                 ("touched", wordStats.touched)]]
-         [input [type' "radio", name "board", value cell,
-                 onCheck (\_ -> SetActiveWord cell),
-                 disabled (model.playerInfo.can_hint || wordStats.touched)] []
-         , text cell]]
+    label []
+      [ input [type' "radio", name "board", value cell,
+               onCheck (\_ -> SetActiveWord cell),
+               disabled (model.playerInfo.can_hint || wordStats.touched)] []
+      , span [classList [
+              ("toggle", True),
+              ("button", True),
+              ("word-label", True),
+              ("color-" ++ wordStats.color, True),
+              ("touched", wordStats.touched)]]
+        [text cell]]
+
+helpModal : Model -> Html Msg
+helpModal model =
+  div []
+    [ label [ for "help-modal", class "button" ] [ text "butt2"]
+    , div [class "modal"]
+      [ input [type' "checkbox", id "help-modal", checked False] []
+      , label [for "help-modal", class "overlay"] []
+      , article []
+        [ header []
+            [ h3 [] [text "Help"] ]
+        , section [class "content"] [ text "TODO"]
+        , footer []
+          [ label [for "help-modal", class "button game-button"] [text "Ok"]]]]]
+
+settingsModal : Model -> Html Msg
+settingsModal model =
+  div []
+    [ label [ for "settings-modal", class "button" ] [ text "butt1" ]
+    , div [class "modal"]
+      [ input [type' "checkbox", id "settings-modal", checked False] []
+      , label [for "settings-modal", class "overlay"] []
+      , article []
+        [ header []
+            [ h3 [] [text "Settings"] ]
+        , section [class "content"] [ text "TODO"]
+        , footer []
+          [ label [for "settings-modal", class "button game-button"] [text "Ok"]]]]]
 
 gameOverModal : Model -> Html Msg
 gameOverModal model =
